@@ -1,82 +1,14 @@
-<div class="app-bar">
-  <div class="app-bar-inner">
-    <div class="app-bar-brand">
-      <mat-icon class="app-bar-logo">school</mat-icon>
-      <span class="app-bar-title">Integrated Data Submission</span>
-    </div>
-
-    <div class="notifications" [class.open]="notificationsOpen()">
-      <button
-        type="button"
-        mat-icon-button
-        class="notifications-trigger"
-        [attr.aria-expanded]="notificationsOpen()"
-        aria-label="Notifications"
-        (click)="toggleNotifications()"
-      >
-        <mat-icon
-          [matBadge]="unreadNotificationCount() > 0 ? unreadNotificationCount() : null"
-          matBadgeColor="warn"
-          matBadgePosition="above after"
-        >
-          notifications
-        </mat-icon>
-      </button>
-
-      @if (notificationsOpen()) {
-        <div class="notifications-backdrop" (click)="closeNotifications()"></div>
-        <div class="notifications-panel" role="menu">
-          <div class="notifications-panel-header">
-            <span>Notifications</span>
-            @if (unreadNotificationCount() > 0) {
-              <button type="button" class="mark-all-read-btn" (click)="markAllNotificationsRead()">
-                Mark all as read
-              </button>
-            }
-          </div>
-
-          <ul class="notifications-list">
-            @for (notification of notifications(); track notification.id) {
-              <li
-                class="notification-item severity-{{ notification.severity }}"
-                [class.unread]="!notification.read"
-                (click)="openNotification(notification)"
-              >
-                <mat-icon class="notification-icon">
-                  @switch (notification.severity) {
-                    @case ('error') { error }
-                    @case ('warning') { warning }
-                    @default { info }
-                  }
-                </mat-icon>
-                <div class="notification-body">
-                  <span class="notification-title">{{ notification.title }}</span>
-                  <span class="notification-message">{{ notification.message }}</span>
-                  <span class="notification-timestamp">{{ notification.timestamp }}</span>
-                </div>
-                <button
-                  type="button"
-                  class="notification-dismiss"
-                  aria-label="Dismiss notification"
-                  (click)="dismissNotification(notification.id, $event)"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
-              </li>
-            } @empty {
-              <li class="notifications-empty">You're all caught up.</li>
-            }
-          </ul>
-        </div>
-      }
-    </div>
-  </div>
-</div>
-
 <div class="page">
+  @if (!locked()) {
+    <a class="back-link" routerLink="/admin">
+      <mat-icon>arrow_back</mat-icon>
+      Back to All LEAs
+    </a>
+  }
+
   <header class="page-intro">
     <span class="intro-text">Upload files and track validation results for</span>
-    <span class="district-pill">{{ districtName }}</span>
+    <span class="district-pill">{{ districtName() }}</span>
   </header>
 
   <div class="collections-toolbar">
@@ -90,7 +22,7 @@
         (click)="setTab('active')"
       >
         Active Collections
-        <span class="count-badge">{{ activeCollections.length }}</span>
+        <span class="count-badge">{{ activeCollections().length }}</span>
       </button>
       <button
         type="button"
@@ -101,10 +33,10 @@
         (click)="setTab('inactive')"
       >
         Inactive Collections
-        <span class="count-badge">{{ inactiveCollections.length }}</span>
+        <span class="count-badge">{{ inactiveCollections().length }}</span>
       </button>
     </div>
-    <span class="open-count">{{ activeCollections.length }} open</span>
+    <span class="open-count">{{ activeCollections().length }} open</span>
   </div>
 
   <div class="collections-row" [class.auto-align]="useAutoAlignGrid()">
@@ -113,7 +45,7 @@
         type="button"
         class="collection-card"
         [class.selected]="collection.id === selectedCollectionId()"
-        [disabled]="!collectionDetails[collection.id]"
+        [disabled]="!collectionDetails()[collection.id]"
         (click)="selectCollection(collection.id)"
       >
         <div class="card-top">

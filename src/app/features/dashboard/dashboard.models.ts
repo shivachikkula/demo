@@ -1,4 +1,4 @@
-export type CollectionStatus = 'success' | 'processing' | 'overdue' | 'not-started';
+export type CollectionStatus = 'success' | 'processing' | 'overdue' | 'not-started' | 'failed';
 
 export interface CollectionSummary {
   id: string;
@@ -44,4 +44,13 @@ export interface CollectionNotification {
   timestamp: string;
   read: boolean;
   collectionId?: string;
+}
+
+export interface LeaDashboardData {
+  id: string;
+  orgLabel: string;
+  displayName: string;
+  activeCollections: CollectionSummary[];
+  inactiveCollections: CollectionSummary[];
+  collectionDetails: Record<string, CollectionDetail>;
 }

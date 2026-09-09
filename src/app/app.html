@@ -1,1 +1,124 @@
+<div class="app-bar">
+  <div class="app-bar-inner">
+    <div class="app-bar-brand">
+      <mat-icon class="app-bar-logo">school</mat-icon>
+      <span class="app-bar-title">Integrated Data Submission</span>
+    </div>
+
+    <div class="app-bar-actions">
+      <div class="view-switcher" [class.open]="viewMenuOpen()">
+        <button
+          type="button"
+          class="view-switcher-trigger"
+          [attr.aria-expanded]="viewMenuOpen()"
+          (click)="toggleViewMenu()"
+        >
+          <span>{{ activeView() === 'admin' ? 'Admin' : 'Sponsor' }}</span>
+          <mat-icon>expand_more</mat-icon>
+        </button>
+
+        @if (viewMenuOpen()) {
+          <div class="view-switcher-backdrop" (click)="closeViewMenu()"></div>
+          <div class="view-switcher-menu" role="menu">
+            <button
+              type="button"
+              class="view-switcher-option"
+              [class.active]="activeView() === 'sponsor'"
+              (click)="switchView('sponsor')"
+            >
+              <span class="option-text">
+                <span class="option-label">Sponsor view</span>
+                <span class="option-hint">Manage your own collections</span>
+              </span>
+              @if (activeView() === 'sponsor') {
+                <mat-icon>check</mat-icon>
+              }
+            </button>
+            <button
+              type="button"
+              class="view-switcher-option"
+              [class.active]="activeView() === 'admin'"
+              (click)="switchView('admin')"
+            >
+              <span class="option-text">
+                <span class="option-label">Admin view</span>
+                <span class="option-hint">Access all LEAs and collections</span>
+              </span>
+              @if (activeView() === 'admin') {
+                <mat-icon>check</mat-icon>
+              }
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="notifications" [class.open]="notificationsService.isOpen()">
+        <button
+          type="button"
+          mat-icon-button
+          class="notifications-trigger"
+          [attr.aria-expanded]="notificationsService.isOpen()"
+          aria-label="Notifications"
+          (click)="notificationsService.toggle()"
+        >
+          <mat-icon
+            [matBadge]="notificationsService.unreadCount() > 0 ? notificationsService.unreadCount() : null"
+            matBadgeColor="warn"
+            matBadgePosition="above after"
+          >
+            notifications
+          </mat-icon>
+        </button>
+
+        @if (notificationsService.isOpen()) {
+          <div class="notifications-backdrop" (click)="notificationsService.close()"></div>
+          <div class="notifications-panel" role="menu">
+            <div class="notifications-panel-header">
+              <span>Notifications</span>
+              @if (notificationsService.unreadCount() > 0) {
+                <button type="button" class="mark-all-read-btn" (click)="notificationsService.markAllRead()">
+                  Mark all as read
+                </button>
+              }
+            </div>
+
+            <ul class="notifications-list">
+              @for (notification of notificationsService.notifications(); track notification.id) {
+                <li
+                  class="notification-item severity-{{ notification.severity }}"
+                  [class.unread]="!notification.read"
+                  (click)="notificationsService.open(notification)"
+                >
+                  <mat-icon class="notification-icon">
+                    @switch (notification.severity) {
+                      @case ('error') { error }
+                      @case ('warning') { warning }
+                      @default { info }
+                    }
+                  </mat-icon>
+                  <div class="notification-body">
+                    <span class="notification-title">{{ notification.title }}</span>
+                    <span class="notification-message">{{ notification.message }}</span>
+                    <span class="notification-timestamp">{{ notification.timestamp }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    class="notification-dismiss"
+                    aria-label="Dismiss notification"
+                    (click)="notificationsService.dismiss(notification.id, $event)"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </li>
+              } @empty {
+                <li class="notifications-empty">You're all caught up.</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
 <router-outlet />

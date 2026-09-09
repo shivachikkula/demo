@@ -1,0 +1,67 @@
+<div class="page">
+  <header class="admin-intro">
+    <div class="admin-intro-text">
+      <h1>All LEAs</h1>
+      <p>Data submission status across every entity.</p>
+    </div>
+
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input type="text" placeholder="Search LEAs" [value]="searchTerm()" (input)="onSearchInput($event)" />
+    </div>
+  </header>
+
+  <div class="summary-grid">
+    <div class="summary-tile tone-neutral">
+      <span class="summary-label">Total LEAs</span>
+      <span class="summary-value">{{ summary.totalLeas }}</span>
+    </div>
+    <div class="summary-tile tone-overdue">
+      <span class="summary-label">LEAs with overdue</span>
+      <span class="summary-value">{{ summary.overdueLeas }}</span>
+    </div>
+    <div class="summary-tile tone-failed">
+      <span class="summary-label">LEAs with failures</span>
+      <span class="summary-value">{{ summary.failedLeas }}</span>
+    </div>
+    <div class="summary-tile tone-compliant">
+      <span class="summary-label">Fully compliant</span>
+      <span class="summary-value">{{ summary.compliantLeas }}</span>
+    </div>
+  </div>
+
+  <div class="roster-table" role="table">
+    <div class="roster-row roster-header" role="row">
+      <span class="col-lea">LEA</span>
+      <button type="button" class="col-sort" (click)="sortBy('overdueCount')">
+        Overdue <span class="sort-indicator">{{ sortIndicator('overdueCount') }}</span>
+      </button>
+      <button type="button" class="col-sort" (click)="sortBy('failedCount')">
+        Failed <span class="sort-indicator">{{ sortIndicator('failedCount') }}</span>
+      </button>
+      <button type="button" class="col-sort" (click)="sortBy('processingCount')">
+        Processing <span class="sort-indicator">{{ sortIndicator('processingCount') }}</span>
+      </button>
+      <span class="col-collections">Collections</span>
+      <span class="col-view"></span>
+    </div>
+
+    @for (lea of filteredRoster(); track lea.id) {
+      <div class="roster-row" role="row">
+        <span class="col-lea">
+          <span class="status-dot dot-{{ lea.statusColor }}"></span>
+          {{ lea.name }}
+        </span>
+        <span class="col-value" [class.nonzero]="lea.overdueCount > 0">{{ lea.overdueCount }}</span>
+        <span class="col-value" [class.nonzero]="lea.failedCount > 0">{{ lea.failedCount }}</span>
+        <span class="col-value" [class.nonzero]="lea.processingCount > 0">{{ lea.processingCount }}</span>
+        <span class="col-collections">{{ lea.activeCount }} active &middot; {{ lea.inactiveCount }} inactive</span>
+        <span class="col-view">
+          <a mat-stroked-button class="view-btn" [routerLink]="['/admin/lea', lea.id]">View</a>
+        </span>
+      </div>
+    } @empty {
+      <div class="roster-empty">No LEAs match "{{ searchTerm() }}".</div>
+    }
+  </div>
+</div>
