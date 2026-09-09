@@ -32,11 +32,8 @@
     <span class="open-count">{{ activeCollections.length }} open</span>
   </div>
 
-  <div class="collections-row">
-    @for (
-      collection of activeTab() === 'active' ? activeCollections : inactiveCollections;
-      track collection.id
-    ) {
+  <div class="collections-row" [class.auto-align]="useAutoAlignGrid()">
+    @for (collection of visibleCollections(); track collection.id) {
       <button
         type="button"
         class="collection-card"
