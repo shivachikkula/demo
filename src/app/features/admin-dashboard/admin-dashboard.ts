@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 
 import { LEA_ROSTER, LEA_ROSTER_SUMMARY, LeaRosterEntry } from '../../data/lea-directory';
+import { LEA_DASHBOARD_DATA } from '../dashboard/lea-dashboard-data';
 
 type SortKey = 'name' | 'overdueCount' | 'failedCount' | 'processingCount';
 type SortDir = 'asc' | 'desc';
@@ -21,9 +22,23 @@ export class AdminDashboard {
   protected readonly sortKey = signal<SortKey>('name');
   protected readonly sortDir = signal<SortDir>('asc');
 
+  private collectionNamesFor(leaId: string): string[] {
+    const record = LEA_DASHBOARD_DATA[leaId];
+    if (!record) {
+      return [];
+    }
+    return [...record.activeCollections, ...record.inactiveCollections].map((collection) => collection.name);
+  }
+
   protected readonly filteredRoster = computed<LeaRosterEntry[]>(() => {
     const term = this.searchTerm().trim().toLowerCase();
-    const filtered = term ? LEA_ROSTER.filter((lea) => lea.name.toLowerCase().includes(term)) : LEA_ROSTER.slice();
+    const filtered = term
+      ? LEA_ROSTER.filter(
+          (lea) =>
+            lea.name.toLowerCase().includes(term) ||
+            this.collectionNamesFor(lea.id).some((name) => name.toLowerCase().includes(term)),
+        )
+      : LEA_ROSTER.slice();
 
     const key = this.sortKey();
     const dir = this.sortDir() === 'asc' ? 1 : -1;
@@ -37,6 +52,14 @@ export class AdminDashboard {
       return ((aValue as number) - (bValue as number)) * dir;
     });
   });
+
+  protected matchedCollections(lea: LeaRosterEntry): string[] {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term || lea.name.toLowerCase().includes(term)) {
+      return [];
+    }
+    return this.collectionNamesFor(lea.id).filter((name) => name.toLowerCase().includes(term));
+  }
 
   protected onSearchInput(event: Event): void {
     this.searchTerm.set((event.target as HTMLInputElement).value);

@@ -7,7 +7,12 @@
 
     <div class="search-box">
       <mat-icon>search</mat-icon>
-      <input type="text" placeholder="Search LEAs" [value]="searchTerm()" (input)="onSearchInput($event)" />
+      <input
+        type="text"
+        placeholder="Search LEAs or collections"
+        [value]="searchTerm()"
+        (input)="onSearchInput($event)"
+      />
     </div>
   </header>
 
@@ -49,8 +54,13 @@
     @for (lea of filteredRoster(); track lea.id) {
       <div class="roster-row" role="row">
         <span class="col-lea">
-          <span class="status-dot dot-{{ lea.statusColor }}"></span>
-          {{ lea.name }}
+          <span class="lea-name-row">
+            <span class="status-dot dot-{{ lea.statusColor }}"></span>
+            {{ lea.name }}
+          </span>
+          @if (matchedCollections(lea).length) {
+            <span class="lea-match-note">Matched: {{ matchedCollections(lea).join(', ') }}</span>
+          }
         </span>
         <span class="col-value" [class.nonzero]="lea.overdueCount > 0">{{ lea.overdueCount }}</span>
         <span class="col-value" [class.nonzero]="lea.failedCount > 0">{{ lea.failedCount }}</span>
@@ -61,7 +71,7 @@
         </span>
       </div>
     } @empty {
-      <div class="roster-empty">No LEAs match "{{ searchTerm() }}".</div>
+      <div class="roster-empty">No LEAs or collections match "{{ searchTerm() }}".</div>
     }
   </div>
 </div>
