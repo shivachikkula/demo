@@ -33,3 +33,15 @@ export interface CollectionDetail {
   lastUploadedFile: SubmissionFile & { sizeKb: number };
   submissionHistory: SubmissionFile[];
 }
+
+export type NotificationSeverity = 'info' | 'warning' | 'error';
+
+export interface CollectionNotification {
+  id: string;
+  severity: NotificationSeverity;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  collectionId?: string;
+}

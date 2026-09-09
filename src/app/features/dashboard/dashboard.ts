@@ -1,20 +1,93 @@
 import { UpperCasePipe } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { CollectionDetail, CollectionSummary } from './dashboard.models';
+import { CollectionDetail, CollectionNotification, CollectionSummary } from './dashboard.models';
 
 type CollectionsTab = 'active' | 'inactive';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatButtonModule, MatIconModule, UpperCasePipe],
+  imports: [MatBadgeModule, MatButtonModule, MatIconModule, UpperCasePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
   protected readonly districtName = 'District of Columbia Public Schools';
+
+  protected readonly notifications = signal<CollectionNotification[]>([
+    {
+      id: 'n1',
+      severity: 'info',
+      title: 'CLSD End of Year (EOY) window is open',
+      message:
+        'The CLSD End of Year (EOY) data collection window is open Jul 28 – Aug 18, 2026. Please upload data as soon as possible after fixing all errors. Questions: Clara.Smith@dc.gov.',
+      timestamp: 'Jul 28, 2026',
+      read: false,
+    },
+    {
+      id: 'n2',
+      severity: 'error',
+      title: 'CLSD-LEA upload failed',
+      message: 'The last submission for CLSD-LEA had 9,134 validation errors. Review and resubmit before the due date.',
+      timestamp: 'Aug 20, 2026 · 2:47 PM',
+      read: false,
+      collectionId: 'clsd-lea',
+    },
+    {
+      id: 'n3',
+      severity: 'warning',
+      title: 'Course collection due soon',
+      message: 'The Course collection is due Aug 19, 2026 — 3 days remaining.',
+      timestamp: 'Aug 16, 2026',
+      read: false,
+      collectionId: 'course',
+    },
+    {
+      id: 'n4',
+      severity: 'info',
+      title: 'Discipline collection passed validation',
+      message: 'DCPS_Enrollment_Fall2026_v3.xlsx passed with 4,822 of 4,908 records clean.',
+      timestamp: 'Aug 10, 2026',
+      read: true,
+      collectionId: 'discipline',
+    },
+  ]);
+
+  protected readonly unreadNotificationCount = computed(
+    () => this.notifications().filter((notification) => !notification.read).length,
+  );
+
+  protected readonly notificationsOpen = signal(false);
+
+  protected toggleNotifications(): void {
+    this.notificationsOpen.update((open) => !open);
+  }
+
+  protected closeNotifications(): void {
+    this.notificationsOpen.set(false);
+  }
+
+  protected markAllNotificationsRead(): void {
+    this.notifications.update((items) => items.map((item) => ({ ...item, read: true })));
+  }
+
+  protected dismissNotification(id: string, event: Event): void {
+    event.stopPropagation();
+    this.notifications.update((items) => items.filter((item) => item.id !== id));
+  }
+
+  protected openNotification(notification: CollectionNotification): void {
+    this.notifications.update((items) =>
+      items.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
+    );
+    if (notification.collectionId && this.collectionDetails[notification.collectionId]) {
+      this.selectedCollectionId.set(notification.collectionId);
+    }
+    this.closeNotifications();
+  }
 
   protected readonly activeTab = signal<CollectionsTab>('active');
 
