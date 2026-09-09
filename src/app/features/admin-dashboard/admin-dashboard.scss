@@ -190,6 +190,29 @@
   }
 }
 
+// Below this width six grid columns can't fit legibly - collapse each row into a
+// stacked card instead (see the .col-stats-group rules further down for the part
+// of this that also needs to come after its `display: contents` default).
+@media (max-width: 640px) {
+  .roster-header {
+    display: none;
+  }
+
+  .roster-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px 18px;
+  }
+
+  .col-view {
+    text-align: left;
+  }
+
+  .view-btn {
+    width: 100%;
+  }
+}
+
 .roster-header {
   background: #fafaf8;
   font-size: 12px;
@@ -268,6 +291,10 @@
   }
 }
 
+.col-stats-group {
+  display: contents;
+}
+
 .col-value {
   font-size: 14px;
   color: #9a9c9f;
@@ -275,6 +302,35 @@
 
   &.nonzero {
     color: #1f2124;
+  }
+}
+
+.mobile-label {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #9a9c9f;
+}
+
+@media (max-width: 640px) {
+  // Must come after the unconditional `.col-stats-group { display: contents; }`
+  // above so it actually wins the cascade at this width.
+  .col-stats-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .col-value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .mobile-label {
+    display: inline;
   }
 }
 

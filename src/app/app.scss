@@ -19,14 +19,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .app-bar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
 
   .app-bar-logo {
+    flex: none;
     color: #1a7a63;
   }
 
@@ -34,6 +38,9 @@
     font-weight: 700;
     font-size: 16px;
     color: #1f2124;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -41,6 +48,17 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: none;
+}
+
+@media (max-width: 480px) {
+  .app-bar-inner {
+    padding: 10px 16px;
+  }
+
+  .app-bar-title {
+    font-size: 14px;
+  }
 }
 
 // ---------- View switcher ----------
@@ -88,6 +106,7 @@
   right: 0;
   z-index: 21;
   width: 260px;
+  max-width: calc(100vw - 32px);
   background: #fff;
   border: 1px solid #e4e3de;
   border-radius: 12px;
