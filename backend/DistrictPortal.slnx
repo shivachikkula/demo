@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DistrictPortal.Api/DistrictPortal.Api.csproj" />
+  </Folder>
+</Solution>
