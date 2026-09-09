@@ -7,33 +7,34 @@
 
     <div class="search-box">
       <mat-icon>search</mat-icon>
-      <input
-        type="text"
-        placeholder="Search LEAs or collections"
-        [value]="searchTerm()"
-        (input)="onSearchInput($event)"
-      />
+      <input type="text" placeholder="Search LEAs or collections" (input)="onSearchInput($event)" />
     </div>
   </header>
 
-  <div class="summary-grid">
-    <div class="summary-tile tone-neutral">
-      <span class="summary-label">Total LEAs</span>
-      <span class="summary-value">{{ summary.totalLeas }}</span>
+  @if (loadError()) {
+    <div class="load-error">{{ loadError() }}</div>
+  }
+
+  @if (summary(); as summaryValue) {
+    <div class="summary-grid">
+      <div class="summary-tile tone-neutral">
+        <span class="summary-label">Total LEAs</span>
+        <span class="summary-value">{{ summaryValue.totalLeas }}</span>
+      </div>
+      <div class="summary-tile tone-overdue">
+        <span class="summary-label">LEAs with overdue</span>
+        <span class="summary-value">{{ summaryValue.overdueLeas }}</span>
+      </div>
+      <div class="summary-tile tone-failed">
+        <span class="summary-label">LEAs with failures</span>
+        <span class="summary-value">{{ summaryValue.failedLeas }}</span>
+      </div>
+      <div class="summary-tile tone-compliant">
+        <span class="summary-label">Fully compliant</span>
+        <span class="summary-value">{{ summaryValue.compliantLeas }}</span>
+      </div>
     </div>
-    <div class="summary-tile tone-overdue">
-      <span class="summary-label">LEAs with overdue</span>
-      <span class="summary-value">{{ summary.overdueLeas }}</span>
-    </div>
-    <div class="summary-tile tone-failed">
-      <span class="summary-label">LEAs with failures</span>
-      <span class="summary-value">{{ summary.failedLeas }}</span>
-    </div>
-    <div class="summary-tile tone-compliant">
-      <span class="summary-label">Fully compliant</span>
-      <span class="summary-value">{{ summary.compliantLeas }}</span>
-    </div>
-  </div>
+  }
 
   <div class="roster-table" role="table">
     <div class="roster-row roster-header" role="row">
@@ -51,27 +52,31 @@
       <span class="col-view"></span>
     </div>
 
-    @for (lea of filteredRoster(); track lea.id) {
-      <div class="roster-row" role="row">
-        <span class="col-lea">
-          <span class="lea-name-row">
-            <span class="status-dot dot-{{ lea.statusColor }}"></span>
-            {{ lea.name }}
+    @if (isLoading() && roster().length === 0) {
+      <div class="roster-empty">Loading LEAs…</div>
+    } @else {
+      @for (lea of roster(); track lea.id) {
+        <div class="roster-row" role="row">
+          <span class="col-lea">
+            <span class="lea-name-row">
+              <span class="status-dot dot-{{ lea.statusColor }}"></span>
+              {{ lea.name }}
+            </span>
+            @if (lea.matchedCollectionNames.length) {
+              <span class="lea-match-note">Matched: {{ lea.matchedCollectionNames.join(', ') }}</span>
+            }
           </span>
-          @if (matchedCollections(lea).length) {
-            <span class="lea-match-note">Matched: {{ matchedCollections(lea).join(', ') }}</span>
-          }
-        </span>
-        <span class="col-value" [class.nonzero]="lea.overdueCount > 0">{{ lea.overdueCount }}</span>
-        <span class="col-value" [class.nonzero]="lea.failedCount > 0">{{ lea.failedCount }}</span>
-        <span class="col-value" [class.nonzero]="lea.processingCount > 0">{{ lea.processingCount }}</span>
-        <span class="col-collections">{{ lea.activeCount }} active &middot; {{ lea.inactiveCount }} inactive</span>
-        <span class="col-view">
-          <a mat-stroked-button class="view-btn" [routerLink]="['/admin/lea', lea.id]">View</a>
-        </span>
-      </div>
-    } @empty {
-      <div class="roster-empty">No LEAs or collections match "{{ searchTerm() }}".</div>
+          <span class="col-value" [class.nonzero]="lea.overdueCount > 0">{{ lea.overdueCount }}</span>
+          <span class="col-value" [class.nonzero]="lea.failedCount > 0">{{ lea.failedCount }}</span>
+          <span class="col-value" [class.nonzero]="lea.processingCount > 0">{{ lea.processingCount }}</span>
+          <span class="col-collections">{{ lea.activeCount }} active &middot; {{ lea.inactiveCount }} inactive</span>
+          <span class="col-view">
+            <a mat-stroked-button class="view-btn" [routerLink]="['/admin/lea', lea.id]">View</a>
+          </span>
+        </div>
+      } @empty {
+        <div class="roster-empty">No LEAs or collections match your search.</div>
+      }
     }
   </div>
 </div>

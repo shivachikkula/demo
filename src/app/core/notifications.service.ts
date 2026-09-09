@@ -1,54 +1,40 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { CollectionNotification } from '../features/dashboard/dashboard.models';
+import { environment } from '../../environments/environment';
+import { CollectionNotification } from './api.models';
+import { SignalrService } from './signalr.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly signalR = inject(SignalrService);
+  private readonly baseUrl = `${environment.apiBaseUrl}/api/notifications`;
 
-  readonly notifications = signal<CollectionNotification[]>([
-    {
-      id: 'n1',
-      severity: 'info',
-      title: 'CLSD End of Year (EOY) window is open',
-      message:
-        'The CLSD End of Year (EOY) data collection window is open Jul 28 – Aug 18, 2026. Please upload data as soon as possible after fixing all errors. Questions: Clara.Smith@dc.gov.',
-      timestamp: 'Jul 28, 2026',
-      read: false,
-    },
-    {
-      id: 'n2',
-      severity: 'error',
-      title: 'CLSD-LEA upload failed',
-      message: 'The last submission for CLSD-LEA had 9,134 validation errors. Review and resubmit before the due date.',
-      timestamp: 'Aug 20, 2026 · 2:47 PM',
-      read: false,
-      collectionId: 'clsd-lea',
-    },
-    {
-      id: 'n3',
-      severity: 'warning',
-      title: 'Course collection due soon',
-      message: 'The Course collection is due Aug 19, 2026 — 3 days remaining.',
-      timestamp: 'Aug 16, 2026',
-      read: false,
-      collectionId: 'course',
-    },
-    {
-      id: 'n4',
-      severity: 'info',
-      title: 'Discipline collection passed validation',
-      message: 'DCPS_Enrollment_Fall2026_v3.xlsx passed with 4,822 of 4,908 records clean.',
-      timestamp: 'Aug 10, 2026',
-      read: true,
-      collectionId: 'discipline',
-    },
-  ]);
-
+  readonly notifications = signal<CollectionNotification[]>([]);
   readonly unreadCount = computed(() => this.notifications().filter((notification) => !notification.read).length);
-
   readonly isOpen = signal(false);
+
+  constructor() {
+    this.refresh();
+
+    // Live-push: a new notification (e.g. a submission finishing processing) lands here
+    // the moment the backend's background worker creates it - no polling required.
+    void this.signalR.ensureStarted().then(() => {
+      this.signalR.connection.on('NotificationCreated', (notification: CollectionNotification) => {
+        this.notifications.update((items) => [notification, ...items]);
+      });
+    });
+  }
+
+  private refresh(): void {
+    this.http.get<CollectionNotification[]>(this.baseUrl).subscribe({
+      next: (items) => this.notifications.set(items),
+      error: (error: unknown) => console.error('Failed to load notifications', error),
+    });
+  }
 
   toggle(): void {
     this.isOpen.update((open) => !open);
@@ -59,15 +45,24 @@ export class NotificationsService {
   }
 
   markAllRead(): void {
-    this.notifications.update((items) => items.map((item) => ({ ...item, read: true })));
+    this.http.post(`${this.baseUrl}/read-all`, {}).subscribe({
+      next: () => this.notifications.update((items) => items.map((item) => ({ ...item, read: true }))),
+      error: (error: unknown) => console.error('Failed to mark all notifications as read', error),
+    });
   }
 
   dismiss(id: string, event: Event): void {
     event.stopPropagation();
-    this.notifications.update((items) => items.filter((item) => item.id !== id));
+    this.http.delete(`${this.baseUrl}/${id}`).subscribe({
+      next: () => this.notifications.update((items) => items.filter((item) => item.id !== id)),
+      error: (error: unknown) => console.error('Failed to dismiss notification', error),
+    });
   }
 
   open(notification: CollectionNotification): void {
+    this.http.post(`${this.baseUrl}/${notification.id}/read`, {}).subscribe({
+      error: (error: unknown) => console.error('Failed to mark notification as read', error),
+    });
     this.notifications.update((items) =>
       items.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
     );

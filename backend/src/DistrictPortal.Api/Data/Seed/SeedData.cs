@@ -107,6 +107,7 @@ public static class SeedData
             NewCollection(lea.Id, "title-i", "Title I", new(2024, 8, 1), isActive: false),
         ]);
 
+        AssignDisplayOrder(lea);
         return lea;
     }
 
@@ -178,6 +179,7 @@ public static class SeedData
             NewCollection(lea.Id, "title-i-kipp", "Title I", new(2024, 8, 1), isActive: false),
         ]);
 
+        AssignDisplayOrder(lea);
         return lea;
     }
 
@@ -227,6 +229,7 @@ public static class SeedData
             NewCollection(lea.Id, "title-i-friendship", "Title I", new(2024, 8, 1), isActive: false),
         ]);
 
+        AssignDisplayOrder(lea);
         return lea;
     }
 
@@ -260,6 +263,7 @@ public static class SeedData
             NewCollection(lea.Id, "graduation-udc", "Graduation", new(2025, 4, 1), isActive: false),
         ]);
 
+        AssignDisplayOrder(lea);
         return lea;
     }
 
@@ -272,7 +276,17 @@ public static class SeedData
             DueDate = dueDate,
             IsActive = isActive,
             SchoolYear = SchoolYear,
+            SortOrder = 0, // overwritten by AssignDisplayOrder once each LEA's list is built
         };
+
+    /// <summary>Numbers a LEA's collections by the order they were added, for stable display order.</summary>
+    private static void AssignDisplayOrder(Lea lea)
+    {
+        for (var i = 0; i < lea.Collections.Count; i++)
+        {
+            lea.Collections[i].SortOrder = i;
+        }
+    }
 
     private static void AddSubmission(
         CollectionDefinition collection,

@@ -14,8 +14,8 @@ public static class EntityMappingExtensions
         Id = lea.Id,
         OrgLabel = lea.OrgLabel,
         DisplayName = lea.DisplayName,
-        ActiveCollections = lea.Collections.Where(c => c.IsActive).Select(c => c.ToSummaryDto()).ToList(),
-        InactiveCollections = lea.Collections.Where(c => !c.IsActive).Select(c => c.ToSummaryDto()).ToList(),
+        ActiveCollections = lea.Collections.Where(c => c.IsActive).OrderBy(c => c.SortOrder).Select(c => c.ToSummaryDto()).ToList(),
+        InactiveCollections = lea.Collections.Where(c => !c.IsActive).OrderBy(c => c.SortOrder).Select(c => c.ToSummaryDto()).ToList(),
     };
 
     public static CollectionSummaryDto ToSummaryDto(this CollectionDefinition collection)

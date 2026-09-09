@@ -1,10 +1,10 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 
-import { LEA_ROSTER, LEA_ROSTER_SUMMARY, LeaRosterEntry } from '../../data/lea-directory';
-import { LEA_DASHBOARD_DATA } from '../dashboard/lea-dashboard-data';
+import { AdminApiService } from '../../core/admin-api.service';
+import { LeaRosterEntry, LeaRosterSummary } from '../../core/api.models';
 
 type SortKey = 'name' | 'overdueCount' | 'failedCount' | 'processingCount';
 type SortDir = 'asc' | 'desc';
@@ -16,53 +16,52 @@ type SortDir = 'asc' | 'desc';
   styleUrl: './admin-dashboard.scss',
 })
 export class AdminDashboard {
-  protected readonly summary = LEA_ROSTER_SUMMARY;
+  private readonly api = inject(AdminApiService);
 
   protected readonly searchTerm = signal('');
   protected readonly sortKey = signal<SortKey>('name');
   protected readonly sortDir = signal<SortDir>('asc');
 
-  private collectionNamesFor(leaId: string): string[] {
-    const record = LEA_DASHBOARD_DATA[leaId];
-    if (!record) {
-      return [];
-    }
-    return [...record.activeCollections, ...record.inactiveCollections].map((collection) => collection.name);
+  protected readonly roster = signal<LeaRosterEntry[]>([]);
+  protected readonly summary = signal<LeaRosterSummary | null>(null);
+  protected readonly isLoading = signal(false);
+  protected readonly loadError = signal<string | null>(null);
+
+  private searchDebounceHandle?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    effect(() => {
+      // Reading these signals here is what makes the effect re-run on every search,
+      // sort key, or sort direction change.
+      const search = this.searchTerm();
+      const sortBy = this.sortKey();
+      const sortDir = this.sortDir();
+      this.loadRoster(search, sortBy, sortDir);
+    });
   }
 
-  protected readonly filteredRoster = computed<LeaRosterEntry[]>(() => {
-    const term = this.searchTerm().trim().toLowerCase();
-    const filtered = term
-      ? LEA_ROSTER.filter(
-          (lea) =>
-            lea.name.toLowerCase().includes(term) ||
-            this.collectionNamesFor(lea.id).some((name) => name.toLowerCase().includes(term)),
-        )
-      : LEA_ROSTER.slice();
+  private loadRoster(search: string, sortBy: SortKey, sortDir: SortDir): void {
+    this.isLoading.set(true);
+    this.loadError.set(null);
 
-    const key = this.sortKey();
-    const dir = this.sortDir() === 'asc' ? 1 : -1;
-
-    return filtered.sort((a, b) => {
-      const aValue = a[key];
-      const bValue = b[key];
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return aValue.localeCompare(bValue) * dir;
-      }
-      return ((aValue as number) - (bValue as number)) * dir;
+    this.api.getRoster(search || undefined, sortBy, sortDir).subscribe({
+      next: (response) => {
+        this.roster.set(response.leas);
+        this.summary.set(response.summary);
+        this.isLoading.set(false);
+      },
+      error: (error: unknown) => {
+        console.error('Failed to load LEA roster', error);
+        this.isLoading.set(false);
+        this.loadError.set('Unable to load LEAs. Is the API running?');
+      },
     });
-  });
-
-  protected matchedCollections(lea: LeaRosterEntry): string[] {
-    const term = this.searchTerm().trim().toLowerCase();
-    if (!term || lea.name.toLowerCase().includes(term)) {
-      return [];
-    }
-    return this.collectionNamesFor(lea.id).filter((name) => name.toLowerCase().includes(term));
   }
 
   protected onSearchInput(event: Event): void {
-    this.searchTerm.set((event.target as HTMLInputElement).value);
+    const value = (event.target as HTMLInputElement).value;
+    clearTimeout(this.searchDebounceHandle);
+    this.searchDebounceHandle = setTimeout(() => this.searchTerm.set(value), 300);
   }
 
   protected sortBy(key: SortKey): void {

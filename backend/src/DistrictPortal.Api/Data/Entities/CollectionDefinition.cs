@@ -17,6 +17,9 @@ public sealed class CollectionDefinition
 
     public required string SchoolYear { get; set; }
 
+    /// <summary>Display order within its LEA (lower first). Ties broken by name.</summary>
+    public required int SortOrder { get; set; }
+
     /// <summary>
     /// Status/label to show when this collection has no submissions yet (e.g. "overdue" /
     /// "Overdue" for a missed due date, or "not-started" / "Not started"). Ignored once a

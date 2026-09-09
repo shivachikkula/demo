@@ -316,6 +316,29 @@
     background: #fbe4e4;
     color: #c62828;
   }
+
+  &.processing {
+    background: #e4eefc;
+    color: #1a5fb4;
+  }
+}
+
+.load-status,
+.load-error {
+  padding: 16px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+}
+
+.load-status {
+  background: #f0f0ed;
+  color: #6b6f76;
+}
+
+.load-error {
+  background: #fbe4e4;
+  color: #c62828;
+  font-weight: 600;
 }
 
 .stats-grid {
@@ -432,6 +455,11 @@
     background: #fbe4e4;
     color: #c62828;
   }
+
+  &.processing {
+    background: #e4eefc;
+    color: #1a5fb4;
+  }
 }
 
 .section-title {
@@ -501,6 +529,11 @@
   &.dragging {
     border-color: #1a7a63;
     background: #eef7f3;
+  }
+
+  &.uploading {
+    border-color: #1a5fb4;
+    background: #eef4fb;
   }
 
   .dropzone-icon {
@@ -599,6 +632,10 @@
 
   &.failed {
     background: #d64545;
+  }
+
+  &.processing {
+    background: #1a5fb4;
   }
 }
 
