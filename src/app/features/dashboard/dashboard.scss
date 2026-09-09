@@ -9,8 +9,7 @@
 // ---------- App bar ----------
 
 .app-bar {
-  background: #fff;
-  border-bottom: 1px solid #e4e3de;
+  background: var(--app-page-bg, #f7f6f2);
 }
 
 .app-bar-inner {
