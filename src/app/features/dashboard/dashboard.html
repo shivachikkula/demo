@@ -1,237 +1,212 @@
-<div class="app-bar">
-  <div class="app-bar-inner">
-    <div class="app-bar-brand">
-      <mat-icon class="app-bar-logo">school</mat-icon>
-      <span class="app-bar-title">District Data Portal</span>
-    </div>
-
-    <div class="notifications" [class.open]="notificationsOpen()">
-      <button
-        type="button"
-        mat-icon-button
-        class="notifications-trigger"
-        [attr.aria-expanded]="notificationsOpen()"
-        aria-label="Notifications"
-        (click)="toggleNotifications()"
-      >
-        <mat-icon
-          [matBadge]="unreadNotificationCount() > 0 ? unreadNotificationCount() : null"
-          matBadgeColor="warn"
-          matBadgePosition="above after"
-        >
-          notifications
-        </mat-icon>
-      </button>
-
-      @if (notificationsOpen()) {
-        <div class="notifications-backdrop" (click)="closeNotifications()"></div>
-        <div class="notifications-panel" role="menu">
-          <div class="notifications-panel-header">
-            <span>Notifications</span>
-            @if (unreadNotificationCount() > 0) {
-              <button type="button" class="mark-all-read-btn" (click)="markAllNotificationsRead()">
-                Mark all as read
-              </button>
-            }
-          </div>
-
-          <ul class="notifications-list">
-            @for (notification of notifications(); track notification.id) {
-              <li
-                class="notification-item severity-{{ notification.severity }}"
-                [class.unread]="!notification.read"
-                (click)="openNotification(notification)"
-              >
-                <mat-icon class="notification-icon">
-                  @switch (notification.severity) {
-                    @case ('error') { error }
-                    @case ('warning') { warning }
-                    @default { info }
-                  }
-                </mat-icon>
-                <div class="notification-body">
-                  <span class="notification-title">{{ notification.title }}</span>
-                  <span class="notification-message">{{ notification.message }}</span>
-                  <span class="notification-timestamp">{{ notification.timestamp }}</span>
-                </div>
-                <button
-                  type="button"
-                  class="notification-dismiss"
-                  aria-label="Dismiss notification"
-                  (click)="dismissNotification(notification.id, $event)"
-                >
-                  <mat-icon>close</mat-icon>
-                </button>
-              </li>
-            } @empty {
-              <li class="notifications-empty">You're all caught up.</li>
-            }
-          </ul>
-        </div>
-      }
-    </div>
-  </div>
-</div>
-
 <div class="page">
-  <header class="page-intro">
-    <span class="intro-text">Upload files and track validation results for</span>
-    <span class="district-pill">{{ districtName }}</span>
-  </header>
+  @if (!locked()) {
+    <a class="back-link" routerLink="/admin">
+      <mat-icon>arrow_back</mat-icon>
+      Back to All LEAs
+    </a>
+  }
 
-  <div class="collections-toolbar">
-    <div class="tabs" role="tablist">
-      <button
-        type="button"
-        role="tab"
-        class="tab"
-        [class.active]="activeTab() === 'active'"
-        [attr.aria-selected]="activeTab() === 'active'"
-        (click)="setTab('active')"
-      >
-        Active Collections
-        <span class="count-badge">{{ activeCollections.length }}</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        class="tab"
-        [class.active]="activeTab() === 'inactive'"
-        [attr.aria-selected]="activeTab() === 'inactive'"
-        (click)="setTab('inactive')"
-      >
-        Inactive Collections
-        <span class="count-badge">{{ inactiveCollections.length }}</span>
-      </button>
-    </div>
-    <span class="open-count">{{ activeCollections.length }} open</span>
-  </div>
+  @if (dashboardError()) {
+    <div class="load-error">{{ dashboardError() }}</div>
+  } @else if (isDashboardLoading() && !dashboard()) {
+    <div class="load-status">Loading dashboard…</div>
+  } @else if (dashboard()) {
+    <header class="page-intro">
+      <span class="intro-text">Upload files and track validation results for</span>
+      <span class="district-pill">{{ districtName() }}</span>
+    </header>
 
-  <div class="collections-row" [class.auto-align]="useAutoAlignGrid()">
-    @for (collection of visibleCollections(); track collection.id) {
-      <button
-        type="button"
-        class="collection-card"
-        [class.selected]="collection.id === selectedCollectionId()"
-        [disabled]="!collectionDetails[collection.id]"
-        (click)="selectCollection(collection.id)"
-      >
-        <div class="card-top">
-          <span class="card-title">{{ collection.name }}</span>
-          <span class="status-chip status-{{ collection.status }}">{{ collection.statusLabel }}</span>
-        </div>
-        <div class="card-meta">
-          Due {{ collection.dueDate }}
-          @if (collection.recordCount) {
-            <span class="card-meta-dot">&middot;</span> {{ formatNumber(collection.recordCount) }} records
-          }
-        </div>
-      </button>
-    }
-
-    @if (activeTab() === 'active') {
-      <a class="trf-card" href="#" target="_blank" rel="noopener" (click)="$event.preventDefault()">
-        <span>Transportation Request Form (TRF)</span>
-        <mat-icon>open_in_new</mat-icon>
-      </a>
-    }
-  </div>
-
-  @if (selectedDetail(); as detail) {
-    <section class="detail-panel">
-      <div class="detail-header">
-        <div class="detail-heading">
-          <span class="viewing-chip">Viewing</span>
-          <h2>{{ detail.orgLabel }} &middot; {{ detail.name }} ({{ detail.schoolYear }})</h2>
-        </div>
-        <span class="overall-status" [class.failed]="detail.overallStatus === 'Failed'">
-          {{ detail.overallStatus }}
-        </span>
-      </div>
-
-      <div class="stats-grid">
-        @for (stat of detail.stats; track stat.label) {
-          <div class="stat-tile tone-{{ stat.tone }}">
-            <span class="stat-label">{{ stat.label | uppercase }}</span>
-            <span class="stat-value">{{ formatNumber(stat.value) }}</span>
-          </div>
-        }
-      </div>
-
-      <div class="last-file-card">
-        <div class="last-file-info">
-          <span class="last-file-label">Last uploaded file</span>
-          <span class="last-file-name">{{ detail.lastUploadedFile.fileName }}</span>
-          <span class="last-file-meta">
-            {{ detail.lastUploadedFile.uploadedAt }}
-            @if (detail.lastUploadedFile.rowCount) {
-              &middot; {{ formatNumber(detail.lastUploadedFile.rowCount) }} rows &middot;
-              {{ formatNumber(detail.lastUploadedFile.sizeKb) }} KB
-            }
-          </span>
-        </div>
-        <div class="last-file-actions">
-          <span class="status-pill" [class.failed]="!detail.lastUploadedFile.passed">
-            {{ detail.lastUploadedFile.passed ? 'Passed' : 'Failed' }}
-          </span>
-          <button mat-icon-button aria-label="Download last uploaded file">
-            <mat-icon>download</mat-icon>
-          </button>
-        </div>
-      </div>
-
-      <h3 class="section-title">Collection Actions</h3>
-      <div class="actions-row">
-        <button type="button" class="primary-action-btn">Download Template</button>
-        <button mat-stroked-button class="get-help-btn">
-          <mat-icon>help_outline</mat-icon>
-          Get help
+    <div class="collections-toolbar">
+      <div class="tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [class.active]="activeTab() === 'active'"
+          [attr.aria-selected]="activeTab() === 'active'"
+          (click)="setTab('active')"
+        >
+          Active Collections
+          <span class="count-badge">{{ activeCollections().length }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [class.active]="activeTab() === 'inactive'"
+          [attr.aria-selected]="activeTab() === 'inactive'"
+          (click)="setTab('inactive')"
+        >
+          Inactive Collections
+          <span class="count-badge">{{ inactiveCollections().length }}</span>
         </button>
       </div>
+      <span class="open-count">{{ activeCollections().length }} open</span>
+    </div>
 
-      <h3 class="section-title">Upload a new submission</h3>
-      <div class="upload-grid">
-        <div
-          class="dropzone"
-          [class.dragging]="isDragging()"
-          (dragover)="onDragOver($event)"
-          (dragleave)="onDragLeave()"
-          (drop)="onDrop($event)"
+    <div class="collections-row" [class.auto-align]="useAutoAlignGrid()">
+      @for (collection of visibleCollections(); track collection.id) {
+        <button
+          type="button"
+          class="collection-card"
+          [class.selected]="collection.id === selectedCollectionId()"
+          (click)="selectCollection(collection.id)"
         >
-          <mat-icon class="dropzone-icon">upload_file</mat-icon>
-          <p class="dropzone-title">Drag and drop your file here</p>
-          <p class="dropzone-subtitle">Upload a new submission for this collection</p>
-          <div class="filetype-chips">
-            <span class="filetype-chip">.dsx</span>
-            <span class="filetype-chip">.csv</span>
-            <span class="filetype-chip">.xml</span>
+          <div class="card-top">
+            <span class="card-title">{{ collection.name }}</span>
+            <span class="status-chip status-{{ collection.status }}">{{ collection.statusLabel }}</span>
           </div>
-          <button mat-stroked-button class="browse-btn">Browse files</button>
+          <div class="card-meta">
+            Due {{ collection.dueDate }}
+            @if (collection.recordCount) {
+              <span class="card-meta-dot">&middot;</span> {{ formatNumber(collection.recordCount) }} records
+            }
+          </div>
+        </button>
+      }
+
+      @if (activeTab() === 'active') {
+        <a class="trf-card" href="#" target="_blank" rel="noopener" (click)="$event.preventDefault()">
+          <span>Transportation Request Form (TRF)</span>
+          <mat-icon>open_in_new</mat-icon>
+        </a>
+      }
+    </div>
+
+    <section class="detail-panel">
+      @if (detailError()) {
+        <div class="load-error">{{ detailError() }}</div>
+      } @else if (isDetailLoading() && !selectedDetail()) {
+        <div class="load-status">Loading collection…</div>
+      } @else if (selectedDetail(); as detail) {
+        <div class="detail-header">
+          <div class="detail-heading">
+            <span class="viewing-chip">Viewing</span>
+            <h2>{{ detail.orgLabel }} &middot; {{ detail.name }} ({{ detail.schoolYear }})</h2>
+          </div>
+          <span
+            class="overall-status"
+            [class.failed]="detail.overallStatus === 'Failed'"
+            [class.processing]="detail.overallStatus === 'Processing'"
+          >
+            {{ detail.overallStatus }}
+          </span>
         </div>
 
-        <div class="submission-history">
-          <div class="history-header">
-            <span>Submission history</span>
-            <span class="history-count">{{ detail.submissionHistory.length }}</span>
-          </div>
-          <ul class="history-list">
-            @for (file of detail.submissionHistory; track file.id) {
-              <li class="history-item">
-                <span class="status-dot" [class.failed]="!file.passed"></span>
-                <div class="history-info">
-                  <span class="history-filename">{{ file.fileName }}</span>
-                  <span class="history-meta">{{ file.uploadedAt }} &middot; {{ formatNumber(file.rowCount) }} rows</span>
-                </div>
-                <button mat-icon-button aria-label="Download {{ file.fileName }}">
-                  <mat-icon>download</mat-icon>
-                </button>
-              </li>
-            } @empty {
-              <li class="history-empty">No submissions yet.</li>
-            }
-          </ul>
+        <div class="stats-grid">
+          @for (stat of detail.stats; track stat.label) {
+            <div class="stat-tile tone-{{ stat.tone }}">
+              <span class="stat-label">{{ stat.label | uppercase }}</span>
+              <span class="stat-value">{{ formatNumber(stat.value) }}</span>
+            </div>
+          }
         </div>
-      </div>
+
+        <div class="last-file-card">
+          @if (detail.lastUploadedFile; as file) {
+            <div class="last-file-info">
+              <span class="last-file-label">Last uploaded file</span>
+              <span class="last-file-name">{{ file.fileName }}</span>
+              <span class="last-file-meta">
+                {{ file.uploadedAt }}
+                @if (file.rowCount) {
+                  &middot; {{ formatNumber(file.rowCount) }} rows &middot; {{ formatKb(file.sizeBytes) }} KB
+                }
+              </span>
+            </div>
+            <div class="last-file-actions">
+              <span
+                class="status-pill"
+                [class.failed]="file.status === 'Failed'"
+                [class.processing]="file.status === 'Processing'"
+              >
+                {{ file.status }}
+              </span>
+              <a [href]="downloadUrl(file.id)" target="_blank" rel="noopener" mat-icon-button aria-label="Download last uploaded file">
+                <mat-icon>download</mat-icon>
+              </a>
+            </div>
+          } @else {
+            <div class="last-file-info">
+              <span class="last-file-label">Last uploaded file</span>
+              <span class="last-file-name">No file uploaded yet</span>
+            </div>
+          }
+        </div>
+
+        <h3 class="section-title">Collection Actions</h3>
+        <div class="actions-row">
+          <button type="button" class="primary-action-btn">Download Template</button>
+          <button mat-stroked-button class="get-help-btn">
+            <mat-icon>help_outline</mat-icon>
+            Get help
+          </button>
+        </div>
+
+        <h3 class="section-title">Upload a new submission</h3>
+        @if (uploadError()) {
+          <div class="load-error">{{ uploadError() }}</div>
+        }
+        <div class="upload-grid">
+          <div
+            class="dropzone"
+            [class.dragging]="isDragging()"
+            [class.uploading]="isUploading()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()"
+            (drop)="onDrop($event)"
+          >
+            <input #fileInput type="file" hidden (change)="onFileSelected($event)" />
+            @if (isUploading()) {
+              <mat-icon class="dropzone-icon">hourglass_top</mat-icon>
+              <p class="dropzone-title">Uploading…</p>
+              <p class="dropzone-subtitle">Hang tight while we store your file.</p>
+            } @else {
+              <mat-icon class="dropzone-icon">upload_file</mat-icon>
+              <p class="dropzone-title">Drag and drop your file here</p>
+              <p class="dropzone-subtitle">Upload a new submission for this collection</p>
+              <div class="filetype-chips">
+                <span class="filetype-chip">.dsx</span>
+                <span class="filetype-chip">.csv</span>
+                <span class="filetype-chip">.xml</span>
+              </div>
+              <button type="button" mat-stroked-button class="browse-btn" (click)="fileInput.click()">Browse files</button>
+            }
+          </div>
+
+          <div class="submission-history">
+            <div class="history-header">
+              <span>Submission history</span>
+              <span class="history-count">{{ detail.submissionHistory.length }}</span>
+            </div>
+            <ul class="history-list">
+              @for (file of detail.submissionHistory; track file.id) {
+                <li class="history-item">
+                  <span
+                    class="status-dot"
+                    [class.failed]="file.status === 'Failed'"
+                    [class.processing]="file.status === 'Processing'"
+                  ></span>
+                  <div class="history-info">
+                    <span class="history-filename">{{ file.fileName }}</span>
+                    <span class="history-meta">
+                      {{ file.uploadedAt }}
+                      @if (file.rowCount) {
+                        &middot; {{ formatNumber(file.rowCount) }} rows
+                      }
+                    </span>
+                  </div>
+                  <a [href]="downloadUrl(file.id)" target="_blank" rel="noopener" mat-icon-button aria-label="Download {{ file.fileName }}">
+                    <mat-icon>download</mat-icon>
+                  </a>
+                </li>
+              } @empty {
+                <li class="history-empty">No submissions yet.</li>
+              }
+            </ul>
+          </div>
+        </div>
+      }
     </section>
   }
 </div>
