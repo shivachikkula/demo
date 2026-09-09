@@ -177,6 +177,16 @@ export class Dashboard {
     () => this.collectionDetails[this.selectedCollectionId()],
   );
 
+  private static readonly AUTO_ALIGN_THRESHOLD = 10;
+
+  protected readonly visibleCollections = computed<CollectionSummary[]>(() =>
+    this.activeTab() === 'active' ? this.activeCollections : this.inactiveCollections,
+  );
+
+  protected readonly useAutoAlignGrid = computed<boolean>(
+    () => this.visibleCollections().length > Dashboard.AUTO_ALIGN_THRESHOLD,
+  );
+
   protected readonly isDragging = signal(false);
 
   protected setTab(tab: CollectionsTab): void {
