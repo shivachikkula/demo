@@ -28,7 +28,9 @@ builder.Services.AddScoped<ILeaRosterService, LeaRosterService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(AngularDevCorsPolicy, policy => policy
-        .WithOrigins("http://localhost:4200")
+        // Browsers treat localhost and 127.0.0.1 as different origins, so both are
+        // allowed here in case the Angular dev server is opened via either.
+        .WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials());
@@ -49,8 +51,12 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+// CORS must run before HTTPS redirection - otherwise a redirect response (e.g. when
+// running the "https" launch profile, which also binds the http:// address Angular
+// calls) goes out without Access-Control-Allow-Origin, and the browser reports that
+// as a CORS failure even though redirection, not CORS policy, is the actual cause.
 app.UseCors(AngularDevCorsPolicy);
+app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
