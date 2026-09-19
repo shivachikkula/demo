@@ -51,12 +51,13 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// CORS must run before HTTPS redirection - otherwise a redirect response (e.g. when
-// running the "https" launch profile, which also binds the http:// address Angular
-// calls) goes out without Access-Control-Allow-Origin, and the browser reports that
-// as a CORS failure even though redirection, not CORS policy, is the actual cause.
+// No UseHttpsRedirection(): Angular is explicitly configured to call
+// http://localhost:5080 (see src/environments/environment.ts), and this API has no
+// HTTPS deployment target to redirect to. Redirecting would send the browser to a
+// different origin (and an untrusted local dev certificate), which it then reports
+// as a CORS failure even though the redirect - not CORS policy - is the actual cause.
+// This was confirmed by seeing 307s on every API/negotiate request in DevTools.
 app.UseCors(AngularDevCorsPolicy);
-app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
