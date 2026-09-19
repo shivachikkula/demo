@@ -18,20 +18,36 @@
   @if (summary(); as summaryValue) {
     <div class="summary-grid">
       <div class="summary-tile tone-neutral">
-        <span class="summary-label">Total LEAs</span>
-        <span class="summary-value">{{ summaryValue.totalLeas }}</span>
+        <div class="summary-tile-icon"><mat-icon>apartment</mat-icon></div>
+        <div class="summary-tile-body">
+          <span class="summary-label">Total LEAs</span>
+          <span class="summary-value">{{ summaryValue.totalLeas }}</span>
+          <span class="summary-caption">Across the district</span>
+        </div>
       </div>
       <div class="summary-tile tone-overdue">
-        <span class="summary-label">LEAs with overdue</span>
-        <span class="summary-value">{{ summaryValue.overdueLeas }}</span>
+        <div class="summary-tile-icon"><mat-icon>event_busy</mat-icon></div>
+        <div class="summary-tile-body">
+          <span class="summary-label">LEAs with overdue</span>
+          <span class="summary-value">{{ summaryValue.overdueLeas }}</span>
+          <span class="summary-caption">{{ summaryCaption(summaryValue.overdueLeas, summaryValue) }}</span>
+        </div>
       </div>
       <div class="summary-tile tone-failed">
-        <span class="summary-label">LEAs with failures</span>
-        <span class="summary-value">{{ summaryValue.failedLeas }}</span>
+        <div class="summary-tile-icon"><mat-icon>error</mat-icon></div>
+        <div class="summary-tile-body">
+          <span class="summary-label">LEAs with failures</span>
+          <span class="summary-value">{{ summaryValue.failedLeas }}</span>
+          <span class="summary-caption">{{ summaryCaption(summaryValue.failedLeas, summaryValue) }}</span>
+        </div>
       </div>
       <div class="summary-tile tone-compliant">
-        <span class="summary-label">Fully compliant</span>
-        <span class="summary-value">{{ summaryValue.compliantLeas }}</span>
+        <div class="summary-tile-icon"><mat-icon>verified</mat-icon></div>
+        <div class="summary-tile-body">
+          <span class="summary-label">Fully compliant</span>
+          <span class="summary-value">{{ summaryValue.compliantLeas }}</span>
+          <span class="summary-caption">{{ summaryCaption(summaryValue.compliantLeas, summaryValue) }}</span>
+        </div>
       </div>
     </div>
   }

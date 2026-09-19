@@ -79,4 +79,13 @@ export class AdminDashboard {
     }
     return this.sortDir() === 'asc' ? '↑' : '↓';
   }
+
+  /** e.g. "16% of all LEAs" under Overdue/Failures/Compliant - a bare count needs scale to mean much. */
+  protected summaryCaption(value: number, summaryValue: LeaRosterSummary): string | null {
+    if (summaryValue.totalLeas === 0) {
+      return null;
+    }
+    const percent = Math.round((value / summaryValue.totalLeas) * 100);
+    return `${percent}% of all LEAs`;
+  }
 }

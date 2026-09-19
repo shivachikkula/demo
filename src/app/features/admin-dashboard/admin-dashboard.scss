@@ -95,69 +95,123 @@
 }
 
 .summary-tile {
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #eae9e4;
+  border-left: 3px solid transparent;
+  box-shadow: 0 1px 2px rgba(31, 33, 36, 0.04);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(31, 33, 36, 0.07);
+    transform: translateY(-1px);
+  }
+}
+
+.summary-tile-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 19px;
+    width: 19px;
+    height: 19px;
+  }
+}
+
+.summary-tile-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  min-width: 0;
+}
 
-  .summary-label {
-    font-size: 13px;
-    font-weight: 600;
+.summary-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #6b6f76;
+}
+
+.summary-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #1f2124;
+}
+
+.summary-caption {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #9a9c9f;
+}
+
+.summary-tile.tone-neutral {
+  border-left-color: #c9c8c2;
+
+  .summary-tile-icon {
+    background: #f0f0ed;
+    color: #52565c;
+  }
+}
+
+.summary-tile.tone-overdue {
+  border-left-color: #c62828;
+
+  .summary-tile-icon {
+    background: #fbe4e4;
+    color: #c62828;
   }
 
   .summary-value {
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1;
+    color: #c62828;
   }
 
-  &.tone-neutral {
-    background: #f0f0ed;
-
-    .summary-label {
-      color: #6b6f76;
-    }
-
-    .summary-value {
-      color: #1f2124;
-    }
+  .summary-caption {
+    color: #cf5f5f;
   }
+}
 
-  &.tone-overdue {
-    background: #fbe4e4;
+.summary-tile.tone-failed {
+  border-left-color: #8a6a1f;
 
-    .summary-label {
-      color: #9c3a3a;
-    }
-
-    .summary-value {
-      color: #c62828;
-    }
-  }
-
-  &.tone-failed {
+  .summary-tile-icon {
     background: #f7ecd6;
-
-    .summary-label {
-      color: #8a6a1f;
-    }
-
-    .summary-value {
-      color: #8a6a1f;
-    }
+    color: #8a6a1f;
   }
 
-  &.tone-compliant {
+  .summary-value {
+    color: #8a6a1f;
+  }
+
+  .summary-caption {
+    color: #ab8a4a;
+  }
+}
+
+.summary-tile.tone-compliant {
+  border-left-color: #1e7e42;
+
+  .summary-tile-icon {
     background: #e3f3e6;
+    color: #1e7e42;
+  }
 
-    .summary-label {
-      color: #2c7a45;
-    }
+  .summary-value {
+    color: #1e7e42;
+  }
 
-    .summary-value {
-      color: #1e7e42;
-    }
+  .summary-caption {
+    color: #4a9a68;
   }
 }
 

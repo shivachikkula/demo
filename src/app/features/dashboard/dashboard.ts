@@ -9,6 +9,7 @@ import {
   CollectionDetail,
   CollectionSummary,
   LeaDashboard,
+  StatTile,
   SubmissionStatusChangedMessage,
 } from '../../core/api.models';
 import { SignalrService } from '../../core/signalr.service';
@@ -228,5 +229,31 @@ export class Dashboard {
 
   protected formatKb(bytes: number): string {
     return Math.round(bytes / 1024).toLocaleString('en-US');
+  }
+
+  protected statIcon(tone: StatTile['tone']): string {
+    switch (tone) {
+      case 'positive':
+        return 'check_circle';
+      case 'negative':
+        return 'cancel';
+      case 'warning':
+        return 'warning';
+      default:
+        return 'description';
+    }
+  }
+
+  /** e.g. "98% of total" under Passed/Failed/Warnings - the bare count doesn't say much alone. */
+  protected statCaption(stat: StatTile, stats: StatTile[]): string | null {
+    if (stat.tone === 'neutral') {
+      return null;
+    }
+    const total = stats.find((s) => s.tone === 'neutral')?.value ?? 0;
+    if (total === 0) {
+      return null;
+    }
+    const percent = Math.round((stat.value / total) * 100);
+    return `${percent}% of total`;
   }
 }

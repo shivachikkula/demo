@@ -96,8 +96,16 @@
         <div class="stats-grid">
           @for (stat of detail.stats; track stat.label) {
             <div class="stat-tile tone-{{ stat.tone }}">
-              <span class="stat-label">{{ stat.label | uppercase }}</span>
-              <span class="stat-value">{{ formatNumber(stat.value) }}</span>
+              <div class="stat-tile-icon">
+                <mat-icon>{{ statIcon(stat.tone) }}</mat-icon>
+              </div>
+              <div class="stat-tile-body">
+                <span class="stat-label">{{ stat.label | uppercase }}</span>
+                <span class="stat-value">{{ formatNumber(stat.value) }}</span>
+                @if (statCaption(stat, detail.stats); as caption) {
+                  <span class="stat-caption">{{ caption }}</span>
+                }
+              </div>
             </div>
           }
         </div>
